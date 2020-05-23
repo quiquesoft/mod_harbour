@@ -20,7 +20,7 @@
 #else
    #include <dlfcn.h>
    #include <unistd.h>
-#endif        
+#endif
 
 int ap_headers_in_count( request_rec * r )
 {
@@ -79,7 +79,7 @@ const char * ap_headers_in_val( int iKey, request_rec * r )
 const char * ap_getenv( const char * szVarName, request_rec * r )
 {
    return apr_table_get( r->subprocess_env, szVarName );
-}   
+}
 
 void ap_headers_out_set( const char * szKey, const char * szValue, request_rec * r )
 {
@@ -89,9 +89,9 @@ void ap_headers_out_set( const char * szKey, const char * szValue, request_rec *
 void ap_set_contenttype( const char * szContentType, request_rec * r )
 {
    char * szType = ( char * ) apr_pcalloc( r->pool, strlen( szContentType ) + 1 );
-   
+
    strcpy( szType, szContentType );
-   
+
    r->content_type = szType;
 }
 
@@ -105,7 +105,7 @@ const char * ap_body( request_rec * r )
     long length = ( long ) r->remaining;
     char * rbuf = ( char * ) apr_pcalloc( r->pool, length + 1 );
     int iRead = 0, iTotal = 0;
-    
+
     while( ( iRead = ap_get_client_block( r, rbuf + iTotal, length + 1 - iTotal ) ) < ( length + 1 - iTotal ) && iRead != 0 )
     {
        iTotal += iRead;
@@ -198,12 +198,12 @@ int CopyFile( const char * from, const char * to, int iOverWrite )
 
 #endif
 
-typedef int ( * PHB_APACHE )( void * pRequestRec, void * pAPRPuts, 
+typedef int ( * PHB_APACHE )( void * pRequestRec, void * pAPRPuts,
                               const char * szFileName, const char * szArgs, const char * szMethod, const char * szUserIP,
-                              void * pHeadersIn, void * pHeadersOut, 
-                              void * pHeadersInCount, void * pHeadersInKey, void * pHeadersInVal, 
-                              void * pHeadersOutCount, void * pHeadersOutKey, void * pHeadersOutVal, void * pHeadersOutSet, 
-                              void * pSetContentType, void * pApacheGetenv, void * pAPBody );
+                              void * pHeadersIn, void * pHeadersOut,
+                              void * pHeadersInCount, void * pHeadersInKey, void * pHeadersInVal,
+                              void * pHeadersOutCount, void * pHeadersOutKey, void * pHeadersOutVal, void * pHeadersOutSet,
+                              void * pSetContentType, void * pApacheGetenv, void * pAPBody, void * pAPRWrite );
 
 static int harbour_handler( request_rec * r )
 {
@@ -217,7 +217,7 @@ static int harbour_handler( request_rec * r )
    #else
       void * lib_harbour = NULL;
    #endif
-   
+
    PHB_APACHE _hb_apache = NULL;
    int iResult = OK;
 
@@ -228,17 +228,17 @@ static int harbour_handler( request_rec * r )
    #ifdef _WINDOWS_
       szDllName = "c:\\Apache24\\htdocs\\libharbour.dll";
       dwThreadId = GetCurrentThreadId();
-   #else       
+   #else
       #ifdef DARWIN
          szDllName = "/Library/WebServer/Documents/libharbour.3.2.0.dylib";
-      #else   
+      #else
          szDllName = "/var/www/html/libharbour.so.3.2.0";
       #endif
       dwThreadId = pthread_self();
-   #endif   
+   #endif
 
    apr_temp_dir_get( &szTempPath, r->pool );
-   CopyFile( szDllName, szTempFileName = apr_psprintf( r->pool, "%s/%s.%d.%d", 
+   CopyFile( szDllName, szTempFileName = apr_psprintf( r->pool, "%s/%s.%d.%d",
              szTempPath, "libharbour", dwThreadId, ( int ) apr_time_now() ), 0 );
 
    r->content_type = "text/html";
@@ -248,7 +248,7 @@ static int harbour_handler( request_rec * r )
 
    #ifdef _WINDOWS_
       if( lib_harbour == NULL )
-          lib_harbour = LoadLibrary( szTempFileName ); 
+          lib_harbour = LoadLibrary( szTempFileName );
    #else
       lib_harbour = dlopen( szTempFileName, RTLD_LAZY );
    #endif
@@ -258,14 +258,14 @@ static int harbour_handler( request_rec * r )
       ap_rprintf( r, "mod_harbour version %s, %s<br>", __DATE__, __TIME__ );
       #ifdef _WINDOWS_
          char * szErrorMessage = GetErrorMessage( GetLastError() );
-  
+
          ap_rprintf( r, "%s<br>", szDllName );
          ap_rputs( szErrorMessage, r );
          LocalFree( ( void * ) szErrorMessage );
       #else
-         ap_rputs( dlerror(), r ); 
+         ap_rputs( dlerror(), r );
       #endif
-   }   
+   }
 
    #ifdef _WINDOWS_
       _hb_apache = ( PHB_APACHE ) GetProcAddress( lib_harbour, "hb_apache" );
@@ -276,25 +276,25 @@ static int harbour_handler( request_rec * r )
    if( _hb_apache == NULL )
       ap_rputs( "<br>failed to load hb_apache()", r );
    else
-      iResult = _hb_apache( r, ( void * ) ap_rputs, r->filename, r->args, r->method, r->useragent_ip, 
+      iResult = _hb_apache( r, ( void * ) ap_rputs, r->filename, r->args, r->method, r->useragent_ip,
                               r->headers_in, r->headers_out,
                               ( void * ) ap_headers_in_count, ( void * ) ap_headers_in_key, ( void * ) ap_headers_in_val,
-                              ( void * ) ap_headers_out_count, ( void * ) ap_headers_out_key, ( void * ) ap_headers_out_val, 
+                              ( void * ) ap_headers_out_count, ( void * ) ap_headers_out_key, ( void * ) ap_headers_out_val,
                               ( void * ) ap_headers_out_set, ( void * ) ap_set_contenttype,
-                              ( void * ) ap_getenv, ( void * ) ap_body );
+                              ( void * ) ap_getenv, ( void * ) ap_body, ( void * ) ap_rwrite );
 
    if( lib_harbour != NULL )
-      #ifdef _WINDOWS_	
+      #ifdef _WINDOWS_
          FreeLibrary( lib_harbour );
       #else
          dlclose( lib_harbour );
       #endif
 
-   #ifdef _WINDOWS_ 
+   #ifdef _WINDOWS_
       DeleteFile( szTempFileName );
    #else
       remove( szTempFileName );
-   #endif      
+   #endif
 
    return iResult;
 }
