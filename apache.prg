@@ -9,7 +9,7 @@
 #include "hbclass.ch"
 #include "hbhrb.ch"
 
-#xcommand ? [<explist,...>] => qOut( '<br>' [,<explist>] )
+#xcommand ? [<explist,...>] => mh_out( '<br>' [,<explist>] )
 
 #define CRLF hb_OsNewLine()
 
@@ -87,8 +87,8 @@ function AddPPRules()
       endif
    endif
 
-   __pp_addRule( hPP, "#xcommand ? [<explist,...>] => qOut([<explist>] )" )
-   __pp_addRule( hPP, "#xcommand ?? [<explist,...>] => qqOut( [<explist>] )" )
+   __pp_addRule( hPP, "#xcommand ? [<explist,...>] => mh_out( '<br>', [<explist>] )" )
+   __pp_addRule( hPP, "#xcommand ?? [<explist,...>] => mh_out( [<explist>] )" )
    __pp_addRule( hPP, "#define CRLF hb_OsNewLine()" )
    __pp_addRule( hPP, "#xcommand TEXT <into:TO,INTO> <v> => #pragma __cstream|<v>:=%s" )
    __pp_addRule( hPP, "#xcommand TEXT <into:TO,INTO> <v> ADDITIVE => #pragma __cstream|<v>+=%s" )
@@ -320,12 +320,7 @@ return Execute( "function __Inline( " + cParams + " )" + HB_OsNewLine() + cCode,
 
 //----------------------------------------------------------------//
 
-function qOut( ... )
-return qqOut( "<br>", ... )
-
-//----------------------------------------------------------------//
-
-function qqOut( ... )
+function mh_out( ... )
    local cTxt
    for each cTxt in hb_aParams()
       if cTxt:__enumIndex() > 1
