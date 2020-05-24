@@ -326,6 +326,7 @@ function mh_out( ... )
       if cTxt:__enumIndex() > 1
          ap_rPuts( " " )
       endIf
+      cTxt := valToChar( cTxt )
       ap_rWrite( cTxt, len( cTxt ) )
    next
 return nil
