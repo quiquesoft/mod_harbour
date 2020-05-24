@@ -935,7 +935,8 @@ typedef int ( * AP_RWRITE )( const void * buf, int nbyte, void * r );
 HB_FUNC( AP_RWRITE )
 {
    AP_RWRITE ap_rwrite = ( AP_RWRITE ) pAPRWrite;
-   hb_retni( ap_rwrite( hb_parclen( 1, hb_parnll( 2 ) ), hb_parnll( 2 ), pRequestRec ) );
+   hb_retni( ap_rwrite( hb_parc( 1 ), hb_parnll( 2 ), pRequestRec ) );
+//   hb_retni( ap_rwrite( hb_parclen( 1, hb_parnll( 2 ) ), hb_parnll( 2 ), pRequestRec ) );
 }
 
 #pragma ENDDUMP
